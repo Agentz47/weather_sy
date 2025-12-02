@@ -2,6 +2,7 @@ import '../../../../../core/network/api_client.dart';
 import '../../../../../core/network/exceptions.dart';
 import '../../models/weather_model.dart';
 import '../../models/forecast_model.dart';
+import '../../models/weather_api_alert_model.dart';
 
 class WeatherRemoteDataSource {
   final ApiClient client;
@@ -67,6 +68,33 @@ class WeatherRemoteDataSource {
       }).toList();
     } catch (e) {
       throw NetworkFailure('Failed to fetch forecast: $e');
+    }
+  }
+
+  /// Fetch weather alerts from OpenWeather One Call API 3.0
+  /// Note: This requires a paid subscription. Returns empty list if not available.
+  Future<List<WeatherApiAlertModel>> fetchAlerts(double lat, double lon) async {
+    try {
+      final response = await client.get(
+        '/data/3.0/onecall',
+        queryParameters: {
+          'lat': lat,
+          'lon': lon,
+          'exclude': 'current,minutely,hourly,daily',
+        },
+      );
+      
+      final alerts = response.data['alerts'] as List?;
+      if (alerts == null || alerts.isEmpty) {
+        return [];
+      }
+      
+      return alerts.map((alert) => WeatherApiAlertModel.fromJson(alert)).toList();
+    } catch (e) {
+      // If One Call API is not available (401/403), return empty list
+      // This allows the app to work without a paid subscription
+      print('API alerts not available: $e');
+      return [];
     }
   }
 }

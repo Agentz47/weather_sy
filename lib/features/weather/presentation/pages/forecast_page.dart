@@ -31,7 +31,7 @@ class _ForecastPageState extends ConsumerState<ForecastPage> {
     final homeState = ref.watch(homeVmProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('5-Day Forecast')),
+      appBar: AppBar(title: const Text('Forecast')),
       body: state.when(
         data: (forecast) => ListView(
           padding: const EdgeInsets.all(16),

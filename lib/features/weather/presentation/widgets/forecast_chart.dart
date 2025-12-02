@@ -21,7 +21,9 @@ class ForecastChart extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.show_chart, color: Theme.of(context).primaryColor),
+                Icon(Icons.show_chart, color: Theme.of(context).brightness == Brightness.dark
+      ? Colors.limeAccent
+      : Theme.of(context).primaryColor),
                 const SizedBox(width: 0),
                 Text(
                   'Temperature Trend',

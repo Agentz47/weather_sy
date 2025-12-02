@@ -1,10 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/network/api_client.dart';
 import '../core/services/location_service.dart';
+import '../core/services/notification_service.dart';
 import '../features/weather/data/datasources/remote/weather_remote_ds.dart';
 import '../features/weather/data/datasources/remote/geocoding_ds.dart';
 import '../features/weather/data/datasources/local/weather_local_ds.dart';
 import '../features/weather/data/repositories/weather_repository_impl.dart';
+import '../features/weather/data/repositories/alert_rule_repository.dart';
+import '../features/weather/data/repositories/alert_event_repository.dart';
+import '../features/weather/data/services/alert_evaluation_service.dart';
 import '../features/weather/domain/repositories/weather_repository.dart';
 import '../features/weather/domain/usecases/get_current_weather.dart';
 import '../features/weather/domain/usecases/get_forecast.dart';
@@ -16,14 +20,19 @@ import '../features/weather/presentation/viewmodels/search_vm.dart';
 import '../features/weather/presentation/viewmodels/favorites_vm.dart';
 import '../features/weather/presentation/viewmodels/forecast_vm.dart';
 import '../features/weather/presentation/viewmodels/alerts_vm.dart';
+import '../features/weather/presentation/viewmodels/alert_rules_vm.dart';
+import '../features/weather/presentation/viewmodels/alert_events_vm.dart';
 import '../features/weather/domain/entities/weather.dart';
 import '../features/weather/domain/entities/forecast.dart';
 import '../features/weather/domain/entities/favorite_city.dart';
 import '../features/weather/domain/entities/city_search_result.dart';
 import '../features/weather/domain/entities/weather_alert.dart';
+import '../features/weather/domain/entities/alert_rule.dart';
+import '../features/weather/domain/entities/alert_event.dart';
 
 // Services
 final locationServiceProvider = Provider<LocationService>((ref) => LocationService());
+final notificationServiceProvider = Provider<NotificationService>((ref) => NotificationService());
 
 // Network
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
@@ -69,6 +78,7 @@ final homeVmProvider = StateNotifierProvider<HomeVm, AsyncValue<Weather>>(
   (ref) => HomeVm(
     ref.watch(getCurrentWeatherProvider),
     ref.watch(locationServiceProvider),
+    alertEvaluationService: ref.watch(alertEvaluationServiceProvider),
   ),
 );
 final searchVmProvider = StateNotifierProvider<SearchVm, AsyncValue<List<CitySearchResult>>>(
@@ -86,4 +96,26 @@ final forecastVmProvider = StateNotifierProvider<ForecastVm, AsyncValue<List<For
 );
 final alertsVmProvider = StateNotifierProvider<AlertsVm, AsyncValue<List<WeatherAlert>>>(
   (ref) => AlertsVm(),
+);
+
+// Alert repositories
+final alertRuleRepositoryProvider = Provider<AlertRuleRepository>((ref) => AlertRuleRepository());
+final alertEventRepositoryProvider = Provider<AlertEventRepository>((ref) => AlertEventRepository());
+
+// Alert evaluation service
+final alertEvaluationServiceProvider = Provider<AlertEvaluationService>(
+  (ref) => AlertEvaluationService(
+    ref.watch(alertRuleRepositoryProvider),
+    ref.watch(alertEventRepositoryProvider),
+    ref.watch(notificationServiceProvider),
+  ),
+);
+
+// Alert ViewModels
+final alertRulesVmProvider = StateNotifierProvider<AlertRulesVm, AsyncValue<List<AlertRule>>>(
+  (ref) => AlertRulesVm(ref.watch(alertRuleRepositoryProvider)),
+);
+
+final alertEventsVmProvider = StateNotifierProvider<AlertEventsVm, AsyncValue<List<AlertEvent>>>(
+  (ref) => AlertEventsVm(ref.watch(alertEventRepositoryProvider)),
 );

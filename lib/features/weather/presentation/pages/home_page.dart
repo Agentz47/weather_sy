@@ -77,6 +77,92 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ],
       ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue, Colors.lightBlue],
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.cloud, size: 48, color: Colors.white),
+                  SizedBox(height: 8),
+                  Text(
+                    'WeatherSY',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Weather Alert System',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.search),
+              title: const Text('Search City'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/search');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite),
+              title: const Text('Favorites'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/favorites');
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.rule),
+              title: const Text('Alert Rules'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/alert-rules');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('Alert History'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/alert-history');
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.notifications),
+              title: const Text('Notification Settings'),
+              onTap: () async {
+                Navigator.pop(context);
+                await ref.read(notificationServiceProvider).requestPermissions();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Notification permissions updated')),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
       body: state.when(
         data: (weather) => RefreshIndicator(
           onRefresh: () => ref.read(homeVmProvider.notifier).refresh(weather.lat, weather.lon),
@@ -99,7 +185,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ],
               ),
               const SizedBox(height: 8),
-              ElevatedButton(onPressed: () => context.push('/forecast'), child: const Text('5-Day Forecast')),
+              ElevatedButton(onPressed: () => context.push('/forecast'), child: const Text('Forecast')),
               const SizedBox(height: 8),
               ElevatedButton(onPressed: () => context.push('/alerts'), child: const Text('Alerts')),
             ],
