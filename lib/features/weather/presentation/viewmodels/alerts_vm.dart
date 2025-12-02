@@ -130,16 +130,16 @@ class AlertsVm extends StateNotifier<AsyncValue<List<WeatherAlert>>> {
         ));
       }
 
-      // Check for poor air quality based on humidity
-      if (weather.humidity > 90) {
+      // Show humidity alert only if humidity is high AND temperature is warm
+      if (weather.humidity > 90 && weather.temperature > 20) {
         alerts.add(WeatherAlert(
           id: 'high_humidity_${now.millisecondsSinceEpoch}',
           title: 'High Humidity Alert',
-          description: 'Humidity is at ${weather.humidity}%, which may cause discomfort.',
+          description: 'Humidity is at ${weather.humidity}%, which may cause discomfort in warm weather.',
           timestamp: now,
           severity: 'minor',
           type: 'condition',
-          recommendation: 'Stay cool and hydrated, use air conditioning if available.',
+          recommendation: 'Stay cool and hydrated, use air conditioning or fans if available.',
         ));
       }
 

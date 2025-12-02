@@ -18,7 +18,9 @@ class WeatherSummaryCard extends StatelessWidget {
           // City name
           Row(
             children: [
-              Icon(Icons.location_on, color: Theme.of(context).primaryColor),
+              Icon(Icons.location_on, color: Theme.of(context).brightness == Brightness.dark
+      ? Colors.limeAccent
+      : Theme.of(context).primaryColor),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

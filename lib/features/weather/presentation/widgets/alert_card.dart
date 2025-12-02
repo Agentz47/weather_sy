@@ -36,14 +36,24 @@ class AlertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final iconColor = theme.colorScheme.primary;
+    final cardBg = isDark ? theme.colorScheme.surface : theme.colorScheme.background;
+    final borderColor = _getSeverityColor(alert.severity);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final recBoxBg = isDark ? Colors.blueGrey.shade900 : Colors.blue.shade50;
+    final recTextColor = isDark ? Colors.white : Colors.black87;
+    final recIconColor = theme.colorScheme.primary;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 4,
-      color: _getSeverityColor(alert.severity).withOpacity(0.1),
+      color: cardBg,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: _getSeverityColor(alert.severity),
+          color: borderColor,
           width: 2,
         ),
       ),
@@ -56,7 +66,7 @@ class AlertCard extends StatelessWidget {
               children: [
                 Icon(
                   _getTypeIcon(alert.type),
-                  color: _getSeverityColor(alert.severity),
+                  color: iconColor,
                   size: 28,
                 ),
                 const SizedBox(width: 12),
@@ -69,7 +79,7 @@ class AlertCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: _getSeverityColor(alert.severity),
+                          color: borderColor,
                         ),
                       ),
                       Text(
@@ -77,7 +87,7 @@ class AlertCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: _getSeverityColor(alert.severity),
+                          color: borderColor,
                         ),
                       ),
                     ],
@@ -88,29 +98,29 @@ class AlertCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               alert.description,
-              style: const TextStyle(fontSize: 14),
+              style: TextStyle(fontSize: 14, color: textColor),
             ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: recBoxBg,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.shade300, width: 1.5),
+                border: Border.all(color: borderColor.withOpacity(0.4), width: 1.5),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.tips_and_updates, color: Colors.blue.shade700, size: 24),
+                      Icon(Icons.tips_and_updates, color: recIconColor, size: 24),
                       const SizedBox(width: 8),
                       Text(
                         'Safety Recommendation',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade900,
+                          color: recIconColor,
                         ),
                       ),
                     ],
@@ -119,10 +129,10 @@ class AlertCard extends StatelessWidget {
                   Text(
                     alert.recommendation,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       height: 1.5,
-                      color: Colors.grey.shade900,
-                      fontWeight: FontWeight.w500,
+                      color: recTextColor,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],

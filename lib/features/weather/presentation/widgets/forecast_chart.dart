@@ -22,7 +22,7 @@ class ForecastChart extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.show_chart, color: Theme.of(context).primaryColor),
-                const SizedBox(width: 8),
+                const SizedBox(width: 0),
                 Text(
                   'Temperature Trend',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -31,7 +31,7 @@ class ForecastChart extends StatelessWidget {
                 ),
                 const Spacer(),
                 _buildLegend(Colors.red.shade400, 'Max'),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 _buildLegend(Colors.blue.shade600, 'Min'),
               ],
             ),
@@ -68,7 +68,7 @@ class ForecastChart extends StatelessWidget {
                           if (value.toInt() >= 0 && value.toInt() < forecasts.length) {
                             final date = forecasts[value.toInt()].date;
                             return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
+                              padding: const EdgeInsets.only(top: 5.0),
                               child: Text(
                                 DateFormat('MMM\ndd').format(date),
                                 textAlign: TextAlign.center,

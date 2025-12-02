@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/ui/components/app_text_field.dart';
@@ -15,6 +17,8 @@ class SearchPage extends ConsumerStatefulWidget {
 }
 
 class _SearchPageState extends ConsumerState<SearchPage> {
+    // Debounce timer for search
+    Timer? _debounce;
   final _controller = TextEditingController();
   String? _selectedRegion;
   
@@ -31,8 +35,15 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   @override
   void dispose() {
     _controller.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
+    void _onSearchChanged(String value) {
+      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce = Timer(const Duration(milliseconds: 400), () {
+        ref.read(searchVmProvider.notifier).search(value);
+      });
+    }
   
   List<dynamic> _filterByRegion(List<dynamic> results) {
     if (_selectedRegion == null || _selectedRegion == 'All') {
@@ -76,6 +87,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             AppTextField(
               controller: _controller,
               hint: 'Enter city name',
+              onChanged: _onSearchChanged,
               onSubmitted: () => ref.read(searchVmProvider.notifier).search(_controller.text),
             ),
             const SizedBox(height: 12),
