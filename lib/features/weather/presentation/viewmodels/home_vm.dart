@@ -47,7 +47,7 @@ class HomeVm extends StateNotifier<AsyncValue<Weather>> {
     // Force refresh from API by skipping cache
     state = const AsyncValue.loading();
     try {
-      final weather = await getCurrentWeather.call(lat, lon);
+      final weather = await getCurrentWeather.call(lat, lon, forceRefresh: true);
       state = AsyncValue.data(weather);
       // Evaluate alert rules after refreshing weather
       await _evaluateAlerts(weather);

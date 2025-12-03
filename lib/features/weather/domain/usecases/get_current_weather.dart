@@ -6,7 +6,7 @@ class GetCurrentWeather {
 
   GetCurrentWeather(this.repository);
 
-  Future<Weather> call(double lat, double lon) {
-    return repository.getCurrentWeather(lat, lon);
+  Future<Weather> call(double lat, double lon, {bool forceRefresh = false}) {
+    return repository.getCurrentWeather(lat, lon, forceRefresh: forceRefresh);
   }
 }
