@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/ui/components/app_text_field.dart';
 import '../../../../core/ui/components/loading_widget.dart';
 import '../../../../core/ui/components/error_widget.dart';
+import '../../../../core/ui/components/error_message_mapper.dart';
 import '../../../../core/ui/components/empty_state_widget.dart';
 import '../../../../di/providers.dart';
 import '../../domain/entities/favorite_city.dart';
@@ -178,7 +179,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   );
                 },
                 loading: () => const LoadingWidget(),
-                error: (e, _) => AppErrorWidget(message: e.toString()),
+                error: (e, _) => AppErrorWidget(message: mapErrorToMessage(e)),
               ),
             ),
           ],

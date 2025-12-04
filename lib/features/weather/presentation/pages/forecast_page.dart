@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/ui/components/loading_widget.dart';
 import '../../../../core/ui/components/error_widget.dart';
+import '../../../../core/ui/components/error_message_mapper.dart';
 import '../../../../di/providers.dart';
 import '../widgets/forecast_day_tile.dart';
 import '../widgets/forecast_chart.dart';
@@ -43,7 +44,7 @@ class _ForecastPageState extends ConsumerState<ForecastPage> {
         ),
         loading: () => const LoadingWidget(),
         error: (e, _) => AppErrorWidget(
-          message: e.toString(),
+          message: mapErrorToMessage(e),
           onRetry: () {
             homeState.whenData((weather) {
               ref.read(forecastVmProvider.notifier).load(weather.lat, weather.lon);

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/ui/components/loading_widget.dart';
 import '../../../../di/providers.dart';
 import '../../../../app.dart';
+import '../../../../core/ui/components/error_message_mapper.dart';
 import '../widgets/weather_summary_card.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -14,6 +15,7 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+    // ...existing code...
   @override
   void initState() {
     super.initState();
@@ -39,8 +41,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                       : Icons.brightness_auto,
             ),
             tooltip: 'Change Theme',
-            onSelected: (ThemeMode mode) {
-              ref.read(themeModeProvider.notifier).state = mode;
+            onSelected: (ThemeMode mode) async {
+              await ref.read(themeModeProvider.notifier).setThemeMode(mode);
             },
             itemBuilder: (context) => [
               const PopupMenuItem(
@@ -204,46 +206,22 @@ class _HomePageState extends ConsumerState<HomePage> {
                   color: Colors.red.shade300,
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  'Oops!',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  e.toString().replaceAll('Exception: ', ''),
+                Text(mapErrorToMessage(e),
+                  style: const TextStyle(fontSize: 18, color: Colors.red),
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => ref.read(homeVmProvider.notifier).loadCurrentLocation(),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Try Again'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                if (e.toString().contains('NetworkFailure')) ...[
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => ref.read(homeVmProvider.notifier).loadCurrentLocation(),
+                    child: const Text('Retry'),
                   ),
-                ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () => context.push('/search'),
-                  icon: const Icon(Icons.search),
-                  label: const Text('Search for a City'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  ),
-                ),
+                ],
               ],
             ),
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => ref.read(homeVmProvider.notifier).loadCurrentLocation(),
-        tooltip: 'Use My Location',
-        child: const Icon(Icons.my_location),
-      ),
     );
-  }
-}
+
+  }}
