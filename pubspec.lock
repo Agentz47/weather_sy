@@ -854,7 +854,7 @@ packages:
     source: hosted
     version: "3.0.3"
   workmanager:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: workmanager
       sha256: "065673b2a465865183093806925419d311a9a5e0995aa74ccf8920fd695e2d10"

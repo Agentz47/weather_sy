@@ -23,14 +23,13 @@ Future<void> main() async {
   // App can check weather even when app is closed
   await Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: true, // TODO: change to false later
+    isInDebugMode: false,
   );
-  // Run background task every 15 minutes
-  // NOTE: Android needs at least 15 minutes, can't be less
+  
   await Workmanager().registerPeriodicTask(
     'weatherAlertTask',
     'weatherAlertTask',
-    frequency: const Duration(minutes: 15),
+    frequency: const Duration(hours: 1),
     initialDelay: const Duration(minutes: 5),
     constraints: Constraints(networkType: NetworkType.connected),
   );
@@ -78,7 +77,7 @@ Future<void> main() async {
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    print('[Workmanager] Background task started: task=$task');
+    debugPrint('[Workmanager] Background task started: task=$task');
     
     // Must start Hive again in background
     await Hive.initFlutter();
@@ -87,11 +86,11 @@ void callbackDispatcher() {
     final locationBox = await Hive.openBox('locationBox');
     final lat = locationBox.get('lat');
     final lon = locationBox.get('lon');
-    print('[Workmanager] Loaded location: lat=$lat, lon=$lon');
+    debugPrint('[Workmanager] Loaded location: lat=$lat, lon=$lon');
     await locationBox.close();
 
     if (lat == null || lon == null) {
-      print('[Workmanager] No location saved, skipping background check.');
+      debugPrint('[Workmanager] No location saved, skipping background check.');
       return Future.value(true);
     }
 
@@ -114,11 +113,11 @@ void callbackDispatcher() {
 
     // Fetch current weather
     final weather = await weatherRepo.getCurrentWeather(lat, lon, forceRefresh: true);
-    print('[Workmanager] Fetched weather: $weather');
+    debugPrint('[Workmanager] Fetched weather: $weather');
 
     // Evaluate alert rules and trigger notifications
     final triggered = await alertEvaluationService.evaluateRules(weather);
-    print('[Workmanager] evaluateRules triggered events: count=${triggered.length}');
+    debugPrint('[Workmanager] evaluateRules triggered events: count=${triggered.length}');
 
     return Future.value(true);
   });
