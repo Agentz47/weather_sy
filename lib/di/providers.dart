@@ -12,17 +12,18 @@ import '../features/weather/data/services/alert_evaluation_service.dart';
 import '../features/weather/domain/repositories/weather_repository.dart';
 import '../features/weather/domain/usecases/get_current_weather.dart';
 import '../features/weather/domain/usecases/get_forecast.dart';
+import '../features/weather/domain/usecases/get_api_alerts.dart';
 import '../features/weather/domain/usecases/add_favorite.dart';
 import '../features/weather/domain/usecases/remove_favorite.dart';
 import '../features/weather/domain/usecases/get_favorites.dart';
 import '../features/weather/presentation/viewmodels/home_vm.dart';
+import '../features/weather/presentation/viewmodels/home_state.dart';
 import '../features/weather/presentation/viewmodels/search_vm.dart';
 import '../features/weather/presentation/viewmodels/favorites_vm.dart';
 import '../features/weather/presentation/viewmodels/forecast_vm.dart';
 import '../features/weather/presentation/viewmodels/alerts_vm.dart';
 import '../features/weather/presentation/viewmodels/alert_rules_vm.dart';
 import '../features/weather/presentation/viewmodels/alert_events_vm.dart';
-import '../features/weather/domain/entities/weather.dart';
 import '../features/weather/domain/entities/forecast.dart';
 import '../features/weather/domain/entities/favorite_city.dart';
 import '../features/weather/domain/entities/city_search_result.dart';
@@ -63,6 +64,9 @@ final getCurrentWeatherProvider = Provider<GetCurrentWeather>(
 final getForecastProvider = Provider<GetForecast>(
   (ref) => GetForecast(ref.watch(weatherRepositoryProvider)),
 );
+final getApiAlertsProvider = Provider<GetApiAlerts>(
+  (ref) => GetApiAlerts(ref.watch(weatherRepositoryProvider)),
+);
 final addFavoriteProvider = Provider<AddFavorite>(
   (ref) => AddFavorite(ref.watch(weatherRepositoryProvider)),
 );
@@ -74,9 +78,10 @@ final getFavoritesProvider = Provider<GetFavorites>(
 );
 
 // ViewModels
-final homeVmProvider = StateNotifierProvider<HomeVm, AsyncValue<Weather>>(
+final homeVmProvider = StateNotifierProvider<HomeVm, HomeState>(
   (ref) => HomeVm(
     ref.watch(getCurrentWeatherProvider),
+    ref.watch(getApiAlertsProvider),
     ref.watch(locationServiceProvider),
     alertEvaluationService: ref.watch(alertEvaluationServiceProvider),
   ),

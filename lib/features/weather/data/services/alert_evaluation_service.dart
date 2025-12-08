@@ -18,11 +18,12 @@ class AlertEvaluationService {
 
   Future<List<AlertEvent>> evaluateRules(Weather weather) async {
     final enabledRules = _ruleRepo.getEnabledRules();
+    print('[AlertEvaluationService] Enabled rules: count=${enabledRules.length}');
     final triggeredEvents = <AlertEvent>[];
 
     for (var rule in enabledRules) {
       double? value;
-      
+      print('[AlertEvaluationService] Evaluating rule: ${rule.name} (${rule.ruleType})');
       switch (rule.ruleType) {
         case 'temperature':
           value = weather.temperature;
@@ -34,13 +35,13 @@ class AlertEvaluationService {
           value = weather.windSpeed;
           break;
         case 'rainProbability':
-          // For rain probability, we'll use a simple check:
-          // If description contains rain, assume 100%, otherwise 0%
           value = weather.description.toLowerCase().contains('rain') ? 100.0 : 0.0;
           break;
       }
 
+      print('[AlertEvaluationService] Rule value: $value, threshold: ${rule.threshold}');
       if (value != null && rule.evaluate(value)) {
+        print('[AlertEvaluationService] Rule triggered! Sending notification.');
         final event = AlertEvent(
           id: '${rule.id}_${DateTime.now().millisecondsSinceEpoch}',
           ruleId: rule.id,
@@ -66,6 +67,7 @@ class AlertEvaluationService {
       }
     }
 
+    print('[AlertEvaluationService] Total triggered events: ${triggeredEvents.length}');
     return triggeredEvents;
   }
 
@@ -115,21 +117,36 @@ class AlertEvaluationService {
   }
 
   Future<void> scheduleDailySummary({int hour = 18}) async {
-    final todayEvents = _eventRepo.getTodayEvents();
-    
-    if (todayEvents.isEmpty) {
-      await _notificationService.scheduleDailySummary(
-        hour: hour,
-        summary: 'No weather alerts triggered today.',
-      );
-    } else {
-      final summary = 'Today: ${todayEvents.length} alert(s) triggered. '
-          '${todayEvents.map((e) => e.ruleName).toSet().join(', ')}';
+    try {
+      // Check if we can schedule exact alarms (Android 12+ requirement)
+      final canSchedule = await _notificationService.canScheduleExactAlarms();
       
-      await _notificationService.scheduleDailySummary(
-        hour: hour,
-        summary: summary,
-      );
+      if (!canSchedule) {
+        print('Cannot schedule exact alarms - SCHEDULE_EXACT_ALARM permission not granted');
+        // Optionally, you could show a dialog to the user here asking them to enable the permission
+        // For now, we'll just skip scheduling and log the issue
+        return;
+      }
+
+      final todayEvents = _eventRepo.getTodayEvents();
+      
+      if (todayEvents.isEmpty) {
+        await _notificationService.scheduleDailySummary(
+          hour: hour,
+          summary: 'No weather alerts triggered today.',
+        );
+      } else {
+        final summary = 'Today: ${todayEvents.length} alert(s) triggered. '
+            '${todayEvents.map((e) => e.ruleName).toSet().join(', ')}';
+        
+        await _notificationService.scheduleDailySummary(
+          hour: hour,
+          summary: summary,
+        );
+      }
+    } catch (e) {
+      print('Failed to schedule daily summary: $e');
+      // Continue without crashing - the app still works without scheduled notifications
     }
   }
 }

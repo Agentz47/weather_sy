@@ -23,12 +23,20 @@ Future<void> main() async {
     callbackDispatcher,
     isInDebugMode: true, // Set to false in production
   );
-  // Register periodic background task
+  // Register periodic background task (for production, keep this at 15 min or more)
   await Workmanager().registerPeriodicTask(
     'weatherAlertTask',
     'weatherAlertTask',
-    frequency: const Duration(hours: 1), // Check every hour
+    frequency: const Duration(minutes: 15), // Minimum allowed by Android
     initialDelay: const Duration(minutes: 5),
+    constraints: Constraints(networkType: NetworkType.connected),
+  );
+
+  // Register a one-off background task for quick testing
+  await Workmanager().registerOneOffTask(
+    'weatherAlertTestTask',
+    'weatherAlertTask',
+    initialDelay: const Duration(seconds: 10), // Runs 10 seconds after app start
     constraints: Constraints(networkType: NetworkType.connected),
   );
   
@@ -61,8 +69,10 @@ Future<void> main() async {
 }
 
 // Background callback for Workmanager
+@pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
+    print('[Workmanager] Background task started: task=$task');
     // Initialize Hive (required in background isolate)
     await Hive.initFlutter();
 
@@ -70,10 +80,11 @@ void callbackDispatcher() {
     final locationBox = await Hive.openBox('locationBox');
     final lat = locationBox.get('lat');
     final lon = locationBox.get('lon');
+    print('[Workmanager] Loaded location: lat=$lat, lon=$lon');
     await locationBox.close();
 
     if (lat == null || lon == null) {
-      // No location saved, skip background check
+      print('[Workmanager] No location saved, skipping background check.');
       return Future.value(true);
     }
 
@@ -96,9 +107,11 @@ void callbackDispatcher() {
 
     // Fetch current weather
     final weather = await weatherRepo.getCurrentWeather(lat, lon, forceRefresh: true);
+    print('[Workmanager] Fetched weather: $weather');
 
     // Evaluate alert rules and trigger notifications
-    await alertEvaluationService.evaluateRules(weather);
+    final triggered = await alertEvaluationService.evaluateRules(weather);
+    print('[Workmanager] evaluateRules triggered events: count=${triggered.length}');
 
     return Future.value(true);
   });

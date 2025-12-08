@@ -61,6 +61,12 @@ class AlertRulesPage extends ConsumerWidget {
                         },
                       ),
                       IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.orange),
+                        onPressed: () {
+                          _showEditRuleDialog(context, ref, rule);
+                        },
+                      ),
+                      IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
                           ref.read(alertRulesVmProvider.notifier).deleteRule(rule.id);
@@ -97,6 +103,128 @@ class AlertRulesPage extends ConsumerWidget {
     }
   }
 
+  void _showEditRuleDialog(BuildContext context, WidgetRef ref, AlertRule rule) {
+    final nameController = TextEditingController(text: rule.name);
+    final thresholdController = TextEditingController(text: rule.threshold.toString());
+    String selectedType = rule.ruleType;
+    String selectedOperator = rule.operator;
+    bool notifyOnTrigger = rule.notifyOnTrigger;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Edit Alert Rule'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Rule Name',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedType,
+                  decoration: const InputDecoration(labelText: 'Condition Type'),
+                  items: const [
+                    DropdownMenuItem(value: 'temperature', child: Text('Temperature')),
+                    DropdownMenuItem(value: 'humidity', child: Text('Humidity')),
+                    DropdownMenuItem(value: 'windSpeed', child: Text('Wind Speed')),
+                    DropdownMenuItem(value: 'rainProbability', child: Text('Rain Probability')),
+                  ],
+                  onChanged: (value) {
+                    setState(() => selectedType = value!);
+                  },
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: selectedOperator,
+                        decoration: const InputDecoration(labelText: 'Operator'),
+                        items: const [
+                          DropdownMenuItem(value: '>', child: Text('>')),
+                          DropdownMenuItem(value: '<', child: Text('<')),
+                          DropdownMenuItem(value: '>=', child: Text('>=')),
+                          DropdownMenuItem(value: '<=', child: Text('<=')),
+                          DropdownMenuItem(value: '==', child: Text('==')),
+                        ],
+                        onChanged: (value) {
+                          setState(() => selectedOperator = value!);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: TextField(
+                        controller: thresholdController,
+                        decoration: InputDecoration(
+                          labelText: 'Threshold',
+                          hintText: _getThresholdHint(selectedType),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SwitchListTile(
+                  title: const Text('Send Notification'),
+                  value: notifyOnTrigger,
+                  onChanged: (value) {
+                    setState(() => notifyOnTrigger = value);
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (nameController.text.isEmpty || thresholdController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please fill all fields')),
+                  );
+                  return;
+                }
+                final threshold = double.tryParse(thresholdController.text);
+                if (threshold == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Invalid threshold value')),
+                  );
+                  return;
+                }
+                final updatedRule = AlertRule(
+                  id: rule.id,
+                  name: nameController.text,
+                  ruleType: selectedType,
+                  operator: selectedOperator,
+                  threshold: threshold,
+                  isEnabled: rule.isEnabled,
+                  notifyOnTrigger: notifyOnTrigger,
+                  createdAt: rule.createdAt,
+                );
+                await ref.read(alertRulesVmProvider.notifier).updateRule(updatedRule);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Rule updated')),
+                );
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   void _showAddRuleDialog(BuildContext context, WidgetRef ref) {
     final nameController = TextEditingController();
     final thresholdController = TextEditingController();

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/ui/theme/app_theme.dart';
 import 'core/ui/theme/theme_mode_service.dart';
 import 'routes/app_router.dart';
-import 'package:hive/hive.dart';
 
 // Async provider for theme mode
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) => ThemeModeNotifier());

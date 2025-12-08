@@ -19,9 +19,10 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
     super.initState();
     Future.microtask(() {
       final homeState = ref.read(homeVmProvider);
-      homeState.whenData((weather) {
+      final weather = homeState.weather;
+      if (weather != null) {
         ref.read(alertsVmProvider.notifier).checkAlerts(weather);
-      });
+      }
     });
   }
 
@@ -37,9 +38,10 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              homeState.whenData((weather) {
+              final weather = homeState.weather;
+              if (weather != null) {
                 ref.read(alertsVmProvider.notifier).checkAlerts(weather);
-              });
+              }
             },
           ),
         ],
@@ -62,9 +64,10 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
         error: (e, _) => AppErrorWidget(
           message: e.toString(),
           onRetry: () {
-            homeState.whenData((weather) {
+            final weather = homeState.weather;
+            if (weather != null) {
               ref.read(alertsVmProvider.notifier).checkAlerts(weather);
-            });
+            }
           },
         ),
       ),

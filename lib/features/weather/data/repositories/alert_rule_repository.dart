@@ -1,13 +1,18 @@
 import 'package:hive/hive.dart';
+import 'package:weather_sy/core/network/exceptions.dart';
 import '../../domain/entities/alert_rule.dart';
 
 class AlertRuleRepository {
   static const String _boxName = 'alert_rules';
   Box<AlertRule>? _box;
 
-  Future<void> init() async {
+ Future<void> init() async {
+  try {
     _box = await Hive.openBox<AlertRule>(_boxName);
+  } catch (e) {
+    throw CacheFailure('Failed to open alert rules box: $e');
   }
+}
 
   Future<void> addRule(AlertRule rule) async {
     await _box?.put(rule.id, rule);

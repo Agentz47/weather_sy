@@ -1,6 +1,7 @@
 import '../../domain/entities/weather.dart';
 import '../../domain/entities/forecast.dart';
 import '../../domain/entities/favorite_city.dart';
+import '../../domain/entities/weather_api_alert.dart';
 import '../../domain/repositories/weather_repository.dart';
 import '../datasources/remote/weather_remote_ds.dart';
 import '../datasources/local/weather_local_ds.dart';
@@ -37,7 +38,6 @@ class WeatherRepositoryImpl implements WeatherRepository {
   @override
   Future<List<Forecast>> getForecast(double lat, double lon) async {
     final key = 'forecast_${lat}_$lon';
-    // TODO: implement TTL logic (6 hours)
     final cached = await localDataSource.getCachedForecast(key);
     if (cached != null) {
       return cached.map((f) => f.toEntity()).toList();
@@ -45,6 +45,19 @@ class WeatherRepositoryImpl implements WeatherRepository {
     final forecast = await remoteDataSource.fetchForecast(lat, lon);
     await localDataSource.cacheForecast(key, forecast);
     return forecast.map((f) => f.toEntity()).toList();
+  }
+
+  @override
+  Future<List<WeatherApiAlert>> getApiAlerts(double lat, double lon) async {
+    try {
+      final alerts = await remoteDataSource.fetchAlerts(lat, lon);
+      return alerts.map((alert) => alert.toEntity()).toList();
+    } catch (e) {
+      // If API alerts fail (e.g., no subscription), return empty list
+      // This allows app to work gracefully without paid API features
+      print('API alerts unavailable: $e');
+      return [];
+    }
   }
 
   @override

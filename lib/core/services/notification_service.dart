@@ -125,49 +125,81 @@ class NotificationService {
     required int hour,
     required String summary,
   }) async {
-    final now = DateTime.now();
-    var scheduledDate = DateTime(now.year, now.month, now.day, hour, 0);
-    
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    try {
+      final now = DateTime.now();
+      var scheduledDate = DateTime(now.year, now.month, now.day, hour, 0);
+      
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
+
+      const androidDetails = AndroidNotificationDetails(
+        'weather_alerts',
+        'Weather Alerts',
+        channelDescription: 'Notifications for weather alerts and warnings',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        icon: '@mipmap/ic_launcher',
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notifications.zonedSchedule(
+        999, // Fixed ID for daily summary
+        'Weather Alert Summary',
+        summary,
+        tz.TZDateTime.from(scheduledDate, tz.local),
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    } catch (e) {
+      // If exact alarm permission is not granted, log the error but don't crash
+      print('Failed to schedule daily summary notification: $e');
+      print('This may be due to missing SCHEDULE_EXACT_ALARM permission on Android 12+');
+      // Could show a user-friendly message here if needed
     }
-
-    const androidDetails = AndroidNotificationDetails(
-      'weather_alerts',
-      'Weather Alerts',
-      channelDescription: 'Notifications for weather alerts and warnings',
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-      icon: '@mipmap/ic_launcher',
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _notifications.zonedSchedule(
-      999, // Fixed ID for daily summary
-      'Weather Alert Summary',
-      summary,
-      tz.TZDateTime.from(scheduledDate, tz.local),
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
   }
 
   Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
   }
 
-  Future<void> cancelNotification(int id) async {
-    await _notifications.cancel(id);
+  Future<bool> canScheduleExactAlarms() async {
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    
+    if (androidPlugin != null) {
+      return await androidPlugin.canScheduleExactNotifications() ?? false;
+    }
+    
+    // On iOS and other platforms, assume it's allowed
+    return true;
+  }
+
+  Future<bool> requestExactAlarmPermission() async {
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    
+    if (androidPlugin != null) {
+      final granted = await androidPlugin.requestExactAlarmsPermission() ?? false;
+      if (!granted) {
+        // Permission not granted - could show a dialog explaining how to enable it manually
+        print('Exact alarm permission denied. Users can enable it in Settings > Apps > WeatherSY > Alarms & reminders');
+      }
+      return granted;
+    }
+    
+    // On iOS and other platforms, assume it's allowed
+    return true;
   }
 }

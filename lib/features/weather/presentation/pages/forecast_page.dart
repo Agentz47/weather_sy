@@ -20,9 +20,10 @@ class _ForecastPageState extends ConsumerState<ForecastPage> {
     super.initState();
     Future.microtask(() {
       final homeState = ref.read(homeVmProvider);
-      homeState.whenData((weather) {
+      final weather = homeState.weather;
+      if (weather != null) {
         ref.read(forecastVmProvider.notifier).load(weather.lat, weather.lon);
-      });
+      }
     });
   }
 
@@ -46,9 +47,10 @@ class _ForecastPageState extends ConsumerState<ForecastPage> {
         error: (e, _) => AppErrorWidget(
           message: mapErrorToMessage(e),
           onRetry: () {
-            homeState.whenData((weather) {
+            final weather = homeState.weather;
+            if (weather != null) {
               ref.read(forecastVmProvider.notifier).load(weather.lat, weather.lon);
-            });
+            }
           },
         ),
       ),

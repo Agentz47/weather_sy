@@ -154,10 +154,21 @@ class _HomePageState extends ConsumerState<HomePage> {
               title: const Text('Notification Settings'),
               onTap: () async {
                 Navigator.pop(context);
+                
+                // Request basic notification permissions
                 await ref.read(notificationServiceProvider).requestPermissions();
+                
+                // Request exact alarm permission (Android 12+)
+                final exactGranted = await ref.read(notificationServiceProvider).requestExactAlarmPermission();
+                
                 if (context.mounted) {
+                  String message = 'Notification permissions updated';
+                  if (!exactGranted) {
+                    message += '. Note: Daily summaries require exact alarm permission (enable in Settings > Apps > WeatherSY > Alarms & reminders)';
+                  }
+                  
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Notification permissions updated')),
+                    SnackBar(content: Text(message)),
                   );
                 }
               },
@@ -165,13 +176,77 @@ class _HomePageState extends ConsumerState<HomePage> {
           ],
         ),
       ),
-      body: state.when(
+      body: state.asyncValue.when(
         data: (weather) => RefreshIndicator(
           onRefresh: () => ref.read(homeVmProvider.notifier).refresh(weather.lat, weather.lon),
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              WeatherSummaryCard(weather: weather),
+              WeatherSummaryCard(
+                weather: weather,
+                usedLastKnownLocation: state.usedLastKnownLocation,
+              ),
+              // Display API alerts if any
+              if (state.apiAlerts.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Card(
+                  color: Colors.orange.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.warning_amber, color: Colors.orange.shade800),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Weather Alerts',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange.shade800,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        ...state.apiAlerts.where((a) => a.isActive).map((alert) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                alert.event,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(alert.description,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                              )),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Valid until: ${alert.endTime}',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: () => ref.read(homeVmProvider.notifier).loadCurrentLocation(),

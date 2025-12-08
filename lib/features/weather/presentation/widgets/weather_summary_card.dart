@@ -7,7 +7,9 @@ import 'weather_animation.dart';
 class WeatherSummaryCard extends StatelessWidget {
   final Weather weather;
 
-  const WeatherSummaryCard({super.key, required this.weather});
+  final bool usedLastKnownLocation;
+
+  const WeatherSummaryCard({super.key, required this.weather, this.usedLastKnownLocation = false});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +17,7 @@ class WeatherSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // City name
+          // City name and location info
           Row(
             children: [
               Icon(Icons.location_on, color: Theme.of(context).brightness == Brightness.dark
@@ -23,18 +25,30 @@ class WeatherSummaryCard extends StatelessWidget {
       : Theme.of(context).primaryColor),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  weather.city,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      weather.city,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (usedLastKnownLocation)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2.0),
+                        child: Text(
+                          'Using last known location. Enable location for up-to-date weather.',
+                          style: TextStyle(fontSize: 12, color: Colors.orange.shade700),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          
           // Animated weather icon
           Center(
             child: WeatherAnimation(
