@@ -37,7 +37,8 @@ class HomeVm extends StateNotifier<HomeState> {
         return;
       }
     } catch (e, st) {
-      // Try to load last known location from Hive
+      // Can't get location? Try last saved location
+      // Works when GPS is off or no permission
       try {
         final locationBox = await Hive.openBox('locationBox');
         final lat = locationBox.get('lat');

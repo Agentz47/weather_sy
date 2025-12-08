@@ -16,11 +16,12 @@ class WeatherRepositoryImpl implements WeatherRepository {
   Future<Weather> getCurrentWeather(double lat, double lon, {bool forceRefresh = false}) async {
     final key = 'weather_${lat}_$lon';
     
+    // Use saved data to save API calls
     if (!forceRefresh) {
-      // Check cache first
+      // Check saved data first
       final cached = await localDataSource.getCachedWeather(key);
       if (cached != null) {
-        // Check if cache is still fresh (within 10 minutes)
+        // Use only if less than 10 minutes old
         final cacheTime = DateTime.fromMillisecondsSinceEpoch(cached.timestamp * 1000);
         final now = DateTime.now();
         if (now.difference(cacheTime).inMinutes < 10) {
@@ -53,8 +54,8 @@ class WeatherRepositoryImpl implements WeatherRepository {
       final alerts = await remoteDataSource.fetchAlerts(lat, lon);
       return alerts.map((alert) => alert.toEntity()).toList();
     } catch (e) {
-      // If API alerts fail (e.g., no subscription), return empty list
-      // This allows app to work gracefully without paid API features
+      // API alerts need paid plan, so just ignore errors
+      // App works fine without them
       print('API alerts unavailable: $e');
       return [];
     }

@@ -4,12 +4,12 @@ import 'core/ui/theme/app_theme.dart';
 import 'core/ui/theme/theme_mode_service.dart';
 import 'routes/app_router.dart';
 
-// Async provider for theme mode
+// Controls dark/light theme
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) => ThemeModeNotifier());
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   ThemeModeNotifier() : super(ThemeMode.system) {
-    _loadThemeMode();
+    _loadThemeMode(); // Load saved theme
   }
 
   Future<void> _loadThemeMode() async {

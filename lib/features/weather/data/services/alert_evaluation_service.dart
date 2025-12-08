@@ -21,9 +21,12 @@ class AlertEvaluationService {
     print('[AlertEvaluationService] Enabled rules: count=${enabledRules.length}');
     final triggeredEvents = <AlertEvent>[];
 
+    // Check each rule if weather matches
     for (var rule in enabledRules) {
       double? value;
       print('[AlertEvaluationService] Evaluating rule: ${rule.name} (${rule.ruleType})');
+      
+      // Get weather value for this rule type
       switch (rule.ruleType) {
         case 'temperature':
           value = weather.temperature;
@@ -35,6 +38,8 @@ class AlertEvaluationService {
           value = weather.windSpeed;
           break;
         case 'rainProbability':
+          // Simple way: if word 'rain' in description, set to 100
+          // TODO: can make this better with real rain data
           value = weather.description.toLowerCase().contains('rain') ? 100.0 : 0.0;
           break;
       }
@@ -55,7 +60,7 @@ class AlertEvaluationService {
         await _eventRepo.addEvent(event);
         triggeredEvents.add(event);
 
-        // Send notification if enabled
+        // Send notification if user turned it on
         if (rule.notifyOnTrigger) {
           await _notificationService.showRuleAlertNotification(
             id: event.timestamp ~/ 1000,

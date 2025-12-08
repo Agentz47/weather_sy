@@ -20,6 +20,7 @@ class WeatherSummaryCard extends StatelessWidget {
           // City name and location info
           Row(
             children: [
+              // Different color in dark mode
               Icon(Icons.location_on, color: Theme.of(context).brightness == Brightness.dark
       ? Colors.limeAccent
       : Theme.of(context).primaryColor),
@@ -53,7 +54,7 @@ class WeatherSummaryCard extends StatelessWidget {
           Center(
             child: WeatherAnimation(
               weatherCondition: weather.description,
-              size: 180,
+              size: 180, // 180 looks good
             ),
           ),
           const SizedBox(height: 16),

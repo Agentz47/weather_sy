@@ -22,6 +22,7 @@ class AlertRulesPage extends ConsumerWidget {
       ),
       body: rulesState.when(
         data: (rules) {
+          // Show message when no rules
           if (rules.isEmpty) {
             return const Center(
               child: Column(
@@ -54,6 +55,7 @@ class AlertRulesPage extends ConsumerWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Switch to turn rule on/off
                       Switch(
                         value: rule.isEnabled,
                         onChanged: (value) {

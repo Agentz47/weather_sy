@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+// Make only one instance for whole app
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -10,6 +11,7 @@ class NotificationService {
   bool _initialized = false;
 
   Future<void> initialize() async {
+    // Don't start twice
     if (_initialized) return;
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -34,6 +36,7 @@ class NotificationService {
   }
 
   Future<void> _createNotificationChannel() async {
+    // Android needs this to group notifications
     const androidChannel = AndroidNotificationChannel(
       'weather_alerts',
       'Weather Alerts',

@@ -18,32 +18,37 @@ import 'di/providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize Workmanager for background tasks
+  
+  // Setup background work
+  // App can check weather even when app is closed
   await Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: true, // Set to false in production
+    isInDebugMode: true, // TODO: change to false later
   );
-  // Register periodic background task (for production, keep this at 15 min or more)
+  // Run background task every 15 minutes
+  // NOTE: Android needs at least 15 minutes, can't be less
   await Workmanager().registerPeriodicTask(
     'weatherAlertTask',
     'weatherAlertTask',
-    frequency: const Duration(minutes: 15), // Minimum allowed by Android
+    frequency: const Duration(minutes: 15),
     initialDelay: const Duration(minutes: 5),
     constraints: Constraints(networkType: NetworkType.connected),
   );
 
-  // Register a one-off background task for quick testing
+  // Run task once for testing
+  // Helped me test if background work is working
   await Workmanager().registerOneOffTask(
     'weatherAlertTestTask',
     'weatherAlertTask',
-    initialDelay: const Duration(seconds: 10), // Runs 10 seconds after app start
+    initialDelay: const Duration(seconds: 10),
     constraints: Constraints(networkType: NetworkType.connected),
   );
   
-  // Initialize Hive
+  // Start Hive for saving data locally
   await Hive.initFlutter();
   
-  // Register Hive adapters
+  // Tell Hive how to save our custom objects
+  // Build_runner made these adapters for me
   Hive.registerAdapter(AlertRuleAdapter());
   Hive.registerAdapter(AlertEventAdapter());
   
@@ -68,12 +73,14 @@ Future<void> main() async {
   );
 }
 
-// Background callback for Workmanager
+// This runs in background (separate thread)
+// Need @pragma or it will not work!
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     print('[Workmanager] Background task started: task=$task');
-    // Initialize Hive (required in background isolate)
+    
+    // Must start Hive again in background
     await Hive.initFlutter();
 
     // Load last known location

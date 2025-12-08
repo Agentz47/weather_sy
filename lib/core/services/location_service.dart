@@ -5,7 +5,7 @@ class LocationService {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Check if location services are enabled
+    // Check if GPS is on
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       throw Exception('Location services are disabled. Please enable GPS in your device settings.');
@@ -14,6 +14,7 @@ class LocationService {
     // Check location permissions
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
+      // Ask user for permission
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         throw Exception('Location permission denied. Please allow location access to use this feature.');
@@ -28,7 +29,7 @@ class LocationService {
     try {
       return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10),
+        timeLimit: const Duration(seconds: 10), // Wait max 10 seconds
       );
     } catch (e) {
       throw Exception('Failed to get your location. Please check your GPS signal.');
